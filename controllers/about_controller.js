@@ -6,8 +6,12 @@ var mongoose = require("mongoose");
 
 function AboutData(data) {
     this.id = data._id
-    this.title = data.title;
+    this.artist_name = data.artist_name;
+    this.resume = data.resume;
     this.photo = data.photo;
+    this.email = data.email;
+    this.id_user_update = data.id_user_update;
+    this.update_date = data.update_date;
 }
 
 exports.find = async (req, res) => {
@@ -30,11 +34,14 @@ exports.aboutUpload = async (req, res) => {
     try {
         const errors = validationResult(req);
         var about = new aboutModel({
-            title: req.body.title,
-            photo: req.body.photo
+            id: req.body.id,
+            artist_name: req.body.artist_name,
+            resume: req.body.resume,
+            photo: req.body.photo,
+            email: req.body.email,
+            id_user_update: req.body.id_user_update,
+            update_date: req.body.update_date
         });
-
-
 
         if (!errors.isEmpty()) {
             return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array());
@@ -50,37 +57,45 @@ exports.aboutUpload = async (req, res) => {
 };
 
 exports.aboutUpdate = async (req, res) => {
-  try {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-          return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array());
-      } else {
-          if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-              return apiResponse.validationErrorWithData(res, "Invalid Error.", "Invalid ID");
-          } else {
-              aboutModel.findById(req.params.id)
-                  .then(about => {
-                      if (!about) {
-                          return apiResponse.notFoundResponse(res, "About not exists with this id");
-                      }
-                      // Update the about
-                      about.title = req.body.title;
-                      about.photo = req.body.photo;
-                      about.save()
-                          .then(updatedAbout => {
-                              let aboutData = new AboutData(updatedAbout);
-                              return apiResponse.successResponseWithData(res, "About updated Success.", aboutData);
-                          })
-                          .catch(err => {
-                              return apiResponse.ErrorResponse(res, err);
-                          });
-                  })
-                  .catch(err => {
-                      return apiResponse.ErrorResponse(res, err);
-                  });
-          }
+        return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array());
       }
-  } catch (err) {
+  
+      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return apiResponse.validationErrorWithData(res, "Invalid Error.", "Invalid ID");
+      }
+  
+      aboutModel.findById(req.params.id)
+        .then(about => {
+          if (!about) {
+            return apiResponse.notFoundResponse(res, "About not exists with this id");
+          }
+  
+          // Update the about properties
+          about.artist_name = req.body.artist_name;
+          about.resume = req.body.resume;
+          about.photo = req.body.photo;
+          about.email = req.body.email;
+          about.id_user_update = req.body.id_user_update;
+          about.update_date = req.body.update_data;
+  
+          // Save the updated about
+          about.save()
+            .then(updatedAbout => {
+              let aboutData = new AboutData(updatedAbout);
+              return apiResponse.successResponseWithData(res, "About updated Success.", aboutData);
+            })
+            .catch(err => {
+              return apiResponse.ErrorResponse(res, err);
+            });
+        })
+        .catch(err => {
+          return apiResponse.ErrorResponse(res, err);
+        });
+    } catch (err) {
       return apiResponse.ErrorResponse(res, err);
-  }
-};
+    }
+  };
+  
